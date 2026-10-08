@@ -87,10 +87,25 @@ void ZoomApp::updateViewAfterResize() {
     //      Black bars will automatically be drawn for you, when we clear the window with
     //      Color::Black in render()
     // ====== ====== ======
+    static sf::Vector2u windowSize;
+    windowSize = mWindow.getSize();
+    static float windowAspectRatio;
+    windowAspectRatio = static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y);
+    static float worldAspectRatio;
+    worldAspectRatio = mWorldSize.x / mWorldSize.y;
+    static sf::FloatRect newViewport;
+    if (windowAspectRatio > worldAspectRatio) {
+        float newWidth = worldAspectRatio / windowAspectRatio;
+        newViewport = sf::FloatRect({(1.0f - newWidth)/2.0f, 0.0f}, {newWidth, 1.0f});
+    } else {
+        float newHeight = windowAspectRatio / worldAspectRatio;
+        newViewport = sf::FloatRect({0.0f, (1.0f - newHeight)/2.0f}, {1.0f, newHeight});
+    }
 
+    std::cout << "newViewport: " << newViewport.position.x << ", " << newViewport.position.y << ", " << newViewport.size.x << ", " << newViewport.size.y << std::endl;
     // Calculate newViewport based on aspect ratios of window and of mWorldSize. Then:
-    // mWorldViewDefault.setViewport(newViewport);
-    // mWorldViewZoomed.setViewport(newViewport);
+    mWorldViewDefault.setViewport(newViewport);
+    mWorldViewZoomed.setViewport(newViewport);
 }
 
 // updateZoomView sets the center of mWorldViewZoomed such that the zoomed view would have the
@@ -116,8 +131,10 @@ void ZoomApp::render() {
     mWindow.clear(sf::Color::Black);
     if (!mIsZooming) {
         // TODO: If the user is not zooming in, use the default world view.
+        mWindow.setView(mWorldViewDefault);
     } else {
         // TODO: If the user is zooming in, use the zoomed world view.
+        mWindow.setView(mWorldViewZoomed);
     }
     mWindow.draw(*mWaldoSprite);
     mWindow.display();
