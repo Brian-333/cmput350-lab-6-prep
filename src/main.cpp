@@ -102,7 +102,7 @@ void ZoomApp::updateViewAfterResize() {
         newViewport = sf::FloatRect({0.0f, (1.0f - newHeight)/2.0f}, {1.0f, newHeight});
     }
 
-    std::cout << "newViewport: " << newViewport.position.x << ", " << newViewport.position.y << ", " << newViewport.size.x << ", " << newViewport.size.y << std::endl;
+    // std::cout << "newViewport: " << newViewport.position.x << ", " << newViewport.position.y << ", " << newViewport.size.x << ", " << newViewport.size.y << std::endl;
     // Calculate newViewport based on aspect ratios of window and of mWorldSize. Then:
     mWorldViewDefault.setViewport(newViewport);
     mWorldViewZoomed.setViewport(newViewport);
@@ -125,6 +125,32 @@ void ZoomApp::updateZoomView(sf::Vector2i mousePos) {
     //  HINT: Determine the steps to go from the desired center to the top-left of this new
     //        world-space rectangle, then from this top-left to the thing you're pointing at,
     //        using our above computed vars. Then solve the equation for the desired center.
+
+    // (1) get mouse position relative to viewport in window pixels
+    static sf::Vector2f mousePosRelativeToViewport;
+    mousePosRelativeToViewport = {
+        static_cast<float>(mousePos.x) - (mWorldViewDefault.getViewport().position.x * mWindow.getSize().x),
+        static_cast<float>(mousePos.y) - (mWorldViewDefault.getViewport().position.y * mWindow.getSize().y)
+    };
+    // (2) get mouse position relative to viewport in percentage of window size
+    static sf::Vector2f mousePosRelativeToViewportPercentage;
+    mousePosRelativeToViewportPercentage = {
+        mousePosRelativeToViewport.x / mWindow.getSize().x,
+        mousePosRelativeToViewport.y / mWindow.getSize().y
+    };
+    // (3) get mouse position relative to world in world units
+    static sf::Vector2f mousePosRelativeToWorld;
+    mousePosRelativeToWorld = {
+        mousePosRelativeToViewportPercentage.x * mWorldSize.x,
+        mousePosRelativeToViewportPercentage.y * mWorldSize.y
+    };
+    static sf::Vector2f newCenter;
+    static sf::Vector2f zoomSize = mWorldSize / ZOOM_FACTOR;
+    newCenter = {
+        mousePosRelativeToWorld.x + zoomSize.x * (0.5f - mousePosRelativeToViewportPercentage.x),
+        mousePosRelativeToWorld.y + zoomSize.y * (0.5f - mousePosRelativeToViewportPercentage.y)
+    };
+    mWorldViewZoomed.setCenter(newCenter);
 }
 
 void ZoomApp::render() {
