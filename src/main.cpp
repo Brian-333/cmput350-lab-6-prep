@@ -132,12 +132,15 @@ void ZoomApp::updateZoomView(sf::Vector2i mousePos) {
         static_cast<float>(mousePos.x) - (mWorldViewDefault.getViewport().position.x * mWindow.getSize().x),
         static_cast<float>(mousePos.y) - (mWorldViewDefault.getViewport().position.y * mWindow.getSize().y)
     };
-    // (2) get mouse position relative to viewport in percentage of window size
+    // (2) get mouse position as a fraction of the viewport, not the whole window
+    static sf::Vector2f viewportPixels;
+    viewportPixels = {
+        mWorldViewDefault.getViewport().size.x * static_cast<float>(mWindow.getSize().x),
+        mWorldViewDefault.getViewport().size.y * static_cast<float>(mWindow.getSize().y)};
     static sf::Vector2f mousePosRelativeToViewportPercentage;
     mousePosRelativeToViewportPercentage = {
-        mousePosRelativeToViewport.x / mWindow.getSize().x,
-        mousePosRelativeToViewport.y / mWindow.getSize().y
-    };
+        mousePosRelativeToViewport.x / viewportPixels.x,
+        mousePosRelativeToViewport.y / viewportPixels.y};
     // (3) get mouse position relative to world in world units
     static sf::Vector2f mousePosRelativeToWorld;
     mousePosRelativeToWorld = {
